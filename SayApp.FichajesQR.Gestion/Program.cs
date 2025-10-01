@@ -6,9 +6,20 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-// Añade el contexto de datos
+// Leer configuración
+var configuration = builder.Configuration;
+
+// Obtener nombres de las conexiones desde ConnectionName
+var fichajesConnName = configuration.GetSection("ConnectionName")["Fichajes"];
+var suasorConnName = configuration.GetSection("ConnectionName")["Suasor"];
+
+// Registrar AppDBContext
 builder.Services.AddDbContext<AppDBContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Fichajes_Loc"))); // O el nombre de tu cadena de conexión
+    options.UseSqlServer(configuration.GetConnectionString(fichajesConnName)));
+
+// Registrar SuasorDbContext (solo lectura)
+builder.Services.AddDbContext<SuasorDbContext>(options =>
+    options.UseSqlServer(configuration.GetConnectionString(suasorConnName)));
 
 var app = builder.Build();
 
