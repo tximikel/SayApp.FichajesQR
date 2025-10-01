@@ -1,0 +1,65 @@
+## Build results
+[Bb]in/
+[Oo]bj/
+*.dll
+*.exe
+*.app
+*.log
+*.vspscc
+*.vssscc
+*.user
+*.suo
+*.cache
+*.pdb
+*.mdb
+*.dbmdl
+*.bak
+*.backup
+*.dmp
+
+## Visual Studio
+.vscode/
+.vs/
+*.userosscache
+*.sln.docstates
+
+## ASP.NET Core / MVC
+#appsettings.Development.json
+#appsettings.Local.json
+#appsettings.*.json
+#launchSettings.json
+
+## Entity Framework
+Migrations/
+*.mdf
+*.ldf
+
+## NuGet
+*.nupkg
+*.snupkg
+*.nuspec
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+## Rider
+.idea/
+
+## Logs
+*.log
+logs/
+
+## Others
+*.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.tmp
+*.bak
+*.orig
+
+## Git
+*.orig
+*.rej
+*.patch
+*.diff
