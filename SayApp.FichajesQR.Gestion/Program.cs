@@ -1,7 +1,14 @@
+using Microsoft.EntityFrameworkCore;
+using SayApp.FichajesQR.Data.DbContexts;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Añade el contexto de datos
+builder.Services.AddDbContext<AppDBContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Fichajes_Loc"))); // O el nombre de tu cadena de conexión
 
 var app = builder.Build();
 

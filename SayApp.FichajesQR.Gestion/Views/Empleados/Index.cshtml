@@ -1,0 +1,33 @@
+@model IEnumerable<SayApp.FichajesQR.Data.DbContexts.App.Entities.Empleado>
+
+@{
+    ViewData["Title"] = "Empleados";
+}
+
+<h2>Empleados</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Nombre</th>
+            <th>Apellidos</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var empleado in Model)
+    {
+        <tr>
+            <td>@empleado.EmpleadoId</td>
+            <td>@empleado.Nombre</td>
+            <td>@empleado.Apellidos</td>
+            <td>@empleado.Estado</td>
+            <td>
+                <a class="btn btn-success" asp-action="CrearQR" asp-route-id="@empleado.EmpleadoId">Crear QR</a>
+                <a class="btn btn-info" asp-action="GenerarImagenQR" asp-route-id="@empleado.EmpleadoId">Generar Imagen QR</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
