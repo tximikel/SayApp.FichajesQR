@@ -30,7 +30,7 @@
 #launchSettings.json
 
 ## Entity Framework
-Migrations/
+#Migrations/
 *.mdf
 *.ldf
 

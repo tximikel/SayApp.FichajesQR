@@ -5,6 +5,12 @@
 }
 
 <h2>Empleados</h2>
+
+@if (TempData["Mensaje"] != null)
+{
+    <div class="alert alert-info">@TempData["Mensaje"]</div>
+}
+
 <table class="table">
     <thead>
         <tr>
@@ -24,8 +30,8 @@
             <td>@empleado.Apellidos</td>
             <td>@empleado.Estado</td>
             <td>
-                <a class="btn btn-success" asp-action="CrearQR" asp-route-id="@empleado.EmpleadoId">Crear QR</a>
-                <a class="btn btn-info" asp-action="GenerarImagenQR" asp-route-id="@empleado.EmpleadoId">Generar Imagen QR</a>
+                <a class="btn btn-success" asp-action="CrearQR" asp-route-id="@empleado.Id">Crear QR</a>
+                <a class="btn btn-info" asp-action="GenerarImagenQR" asp-route-id="@empleado.Id">Generar Imagen QR</a>
             </td>
         </tr>
     }
