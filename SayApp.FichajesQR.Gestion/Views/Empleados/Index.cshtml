@@ -37,3 +37,11 @@
     }
     </tbody>
 </table>
+
+@if (ViewData["QrImagePath"] != null)
+{
+    <div class="mt-4">
+        <h4>QR generado:</h4>
+        <img src="@ViewData["QrImagePath"]" alt="QR generado" style="max-width:200px;" />
+    </div>
+}
