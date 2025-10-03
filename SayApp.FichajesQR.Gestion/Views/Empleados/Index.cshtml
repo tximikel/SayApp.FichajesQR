@@ -1,8 +1,10 @@
-@model IEnumerable<SayApp.FichajesQR.Data.DbContexts.App.Entities.Empleado>
+@model IEnumerable<SayApp.FichajesQR.Gestion.ViewModels.EmpleadoConQRViewModel>
 
 @{
     ViewData["Title"] = "Empleados";
 }
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
 <h2>Empleados</h2>
 
@@ -15,23 +17,71 @@
     <thead>
         <tr>
             <th>Id</th>
+            <th>EmpleadoId</th>
             <th>Nombre</th>
             <th>Apellidos</th>
             <th>Estado</th>
+            <th>QR Activo</th>
+            <th>QR Válido</th>
+            <th>Fecha QR</th>
+            <th>Creado por</th>
             <th>Acciones</th>
         </tr>
     </thead>
     <tbody>
-    @foreach (var empleado in Model)
+    @foreach (var item in Model)
     {
         <tr>
-            <td>@empleado.EmpleadoId</td>
-            <td>@empleado.Nombre</td>
-            <td>@empleado.Apellidos</td>
-            <td>@empleado.Estado</td>
+            <td>@item.Empleado.Id</td>
+            <td>@item.Empleado.EmpleadoId</td>
+            <td>@item.Empleado.Nombre</td>
+            <td>@item.Empleado.Apellidos</td>
+            <td>@item.Empleado.Estado</td>
             <td>
-                <a class="btn btn-success" asp-action="CrearQR" asp-route-id="@empleado.Id">Crear QR</a>
-                <a class="btn btn-info" asp-action="GenerarImagenQR" asp-route-id="@empleado.Id">Generar Imagen QR</a>
+                @if (item.QRActivo != null && item.QRActivo.Activo)
+                {
+                    <i class="bi bi-check-circle-fill" style="color:#28a745; font-size:1.5em;" title="QR activo"></i>
+                }
+                else
+                {
+                    <i class="bi bi-x-circle-fill" style="color:#dc3545; font-size:1.5em;" title="Sin QR activo"></i>
+                }
+            </td>
+            <td>
+                @if (item.EsQRValido)
+                {
+                    <span style="color:green;">Sí</span>
+                }
+                else
+                {
+                    <span style="color:red;">No</span>
+                }
+            </td>
+            <td>
+                @item.QRActivo?.FechaCreacion.ToString("yyyy-MM-dd HH:mm") ?? "-"
+            </td>
+            <td>
+                @item.QRActivo?.CreadoPor ?? "-"
+            </td>
+            <td>
+                <button class="btn crear-qr-btn @(item.QRActivo != null && item.QRActivo.Activo ? "btn-warning" : "btn-success")"
+                        data-id="@item.Empleado.Id"
+                        data-nombre="@item.Empleado.Nombre"
+                        data-apellidos="@item.Empleado.Apellidos">
+                    Crear QR
+                </button>
+                <a class="btn btn-info @(item.QRActivo != null && item.QRActivo.Activo ? "" : "disabled")"
+                   asp-action="GenerarImagenQR"
+                   asp-route-id="@item.Empleado.Id">
+                    Generar Imagen QR
+                </a>
+                <button class="btn btn-danger anular-qr-btn"
+                        data-id="@item.Empleado.Id"
+                        data-nombre="@item.Empleado.Nombre"
+                        data-apellidos="@item.Empleado.Apellidos"
+                        @(item.QRActivo != null && item.QRActivo.Activo ? "" : "disabled")>
+                    Anular QR
+                </button>
             </td>
         </tr>
     }
@@ -42,6 +92,124 @@
 {
     <div class="mt-4">
         <h4>QR generado:</h4>
+        @if (ViewData["QrEmpId"] != null)
+        {
+            <div>
+                <strong>Empleado:</strong> @ViewData["QrEmpId"] [@ViewData["QrEmpleadoId"]] - @ViewData["QrEmpleadoNombre"]
+            </div>
+        }
+        @if (ViewData["QrFechaCreacion"] != null)
+        {
+            <div>
+                <strong>Fecha de creación:</strong> @ViewData["QrFechaCreacion"]
+            </div>
+        }
         <img src="@ViewData["QrImagePath"]" alt="QR generado" style="max-width:200px;" />
     </div>
+}
+
+<!-- Modal de confirmación para Crear QR -->
+<div class="modal fade" id="confirmarCrearQRModal" tabindex="-1" aria-labelledby="confirmarCrearQRLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmarCrearQRLabel">Confirmar creación de QR</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body" id="confirmarCrearQRBody">
+        <!-- Aquí se inserta el mensaje dinámicamente -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="cancelarCrearQRBtn" data-bs-dismiss="modal" autofocus>Cancelar</button>
+        <button type="button" class="btn btn-warning" id="confirmarCrearQRBtn">Crear QR</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmación para Anular QR -->
+<div class="modal fade" id="confirmarAnularQRModal" tabindex="-1" aria-labelledby="confirmarAnularQRLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmarAnularQRLabel">Confirmar anulación de QR</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body" id="confirmarAnularQRBody">
+        <!-- Aquí se inserta el mensaje dinámicamente -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="cancelarAnularQRBtn" data-bs-dismiss="modal" autofocus>Cancelar</button>
+        <form id="anularQRForm" method="post" action="/Empleados/AnularQR" style="display:inline;">
+            <input type="hidden" name="id" id="anularQRId" />
+            <button type="submit" class="btn btn-danger" id="confirmarAnularQRBtn">Anular QR</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+<script>
+let crearQRId = null;
+
+document.querySelectorAll('.crear-qr-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+        const id = this.getAttribute('data-id');
+        fetch(`/Empleados/ComprobarQRActivo?id=${id}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.existe) {
+                    crearQRId = id;
+                    // Mensaje personalizado
+                    document.getElementById('confirmarCrearQRBody').innerText =
+                        `El empleado ${data.id} (${data.empleadoId}) - ${data.nombre} ${data.apellidos} ya tiene un QR activo desde ${data.fecha}.\n\nSi continúas, el QR actual se anulará y se reemplazará por uno nuevo.\n\n¿Deseas continuar?`;
+                    // Mostrar modal
+                    var modal = new bootstrap.Modal(document.getElementById('confirmarCrearQRModal'));
+                    modal.show();
+                    // Poner el foco en Cancelar
+                    setTimeout(() => {
+                        document.getElementById('cancelarCrearQRBtn').focus();
+                    }, 300);
+                } else {
+                    window.location.href = `/Empleados/CrearQR/${id}`;
+                }
+            });
+    });
+});
+
+// Acción al confirmar en el modal
+document.getElementById('confirmarCrearQRBtn').addEventListener('click', function () {
+    if (crearQRId) {
+        window.location.href = `/Empleados/CrearQR/${crearQRId}`;
+    }
+});
+
+let anularQRId = null;
+
+document.querySelectorAll('.anular-qr-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+        const id = this.getAttribute('data-id');
+        const nombre = this.getAttribute('data-nombre');
+        const apellidos = this.getAttribute('data-apellidos');
+        anularQRId = id;
+        document.getElementById('confirmarAnularQRBody').innerText =
+            `Vas a anular el QR activo del empleado ${id} - ${nombre} ${apellidos}.\n\n¿Seguro que deseas continuar?`;
+        document.getElementById('anularQRId').value = id;
+        var modal = new bootstrap.Modal(document.getElementById('confirmarAnularQRModal'));
+        modal.show();
+        setTimeout(() => {
+            document.getElementById('cancelarAnularQRBtn').focus();
+        }, 300);
+    });
+});
+
+// Acción al confirmar anulación en el modal
+document.getElementById('confirmarAnularQRBtn').addEventListener('click', function () {
+    if (anularQRId) {
+        document.getElementById('anularQRId').value = anularQRId;
+        document.getElementById('anularQRForm').submit();
+    }
+});
+</script>
 }

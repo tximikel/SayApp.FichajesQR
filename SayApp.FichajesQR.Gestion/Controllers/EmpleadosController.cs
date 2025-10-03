@@ -9,6 +9,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Security.Cryptography;
 using System.Text;
+using SayApp.FichajesQR.Gestion.ViewModels;
 
 
 namespace SayApp.FichajesQR.Gestion.Controllers
@@ -24,8 +25,9 @@ namespace SayApp.FichajesQR.Gestion.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var empleados = await _context.Empleados.ToListAsync();
-            return View(empleados);
+            var lista = await ObtenerEmpleadosConQRViewModelAsync();
+
+            return View(lista);
         }
 
         // Para AES-256, la clave debe tener 32 bytes (caracteres UTF-8) y el IV exactamente 16 bytes.
@@ -88,7 +90,7 @@ namespace SayApp.FichajesQR.Gestion.Controllers
             var chk = GenerarChecksum($"{idStr}|{guidShort}|{fechaCorta}");
             var payloadFinal = $"{idStr}|{guidShort}|{fechaCorta}|{chk}";
 
-            // Desactivar otros QR activos del empleado
+            // Anular otros QR activos del empleado
             var otrosQR = await _context.EmpleadosQR
                 .Where(q => q.EmpleadoId == id && q.Activo)
                 .ToListAsync();
@@ -113,7 +115,7 @@ namespace SayApp.FichajesQR.Gestion.Controllers
             ProbarDescifradoYVerificacion(payloadFinal, guidADShort);
 
             TempData["Mensaje"] = $"QR generado y almacenado en la base de datos para el empleado {id}.";
-            return RedirectToAction("Index");
+            return RedirectToAction("GenerarImagenQR", new { id });
         }
 
         public async Task<IActionResult> GenerarImagenQR(int id)
@@ -129,6 +131,13 @@ namespace SayApp.FichajesQR.Gestion.Controllers
                 return RedirectToAction("Index");
             }
 
+            var empleado = await _context.Empleados.FirstOrDefaultAsync(e => e.Id == id);
+            if (empleado == null)
+            {
+                TempData["Mensaje"] = "Empleado no encontrado.";
+                return RedirectToAction("Index");
+            }
+
             // Guardar la imagen QR en una carpeta accesible por la web (por ejemplo, wwwroot/qr_temp)
             var wwwrootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "qr_temp");
             Directory.CreateDirectory(wwwrootPath);
@@ -137,12 +146,16 @@ namespace SayApp.FichajesQR.Gestion.Controllers
 
             GenerarQR_Imagen(qr.CodigoQR, filePath);
 
-            // Pasar la ruta relativa a la vista usando ViewData
+            // Pasar la ruta relativa y los datos del empleado a la vista usando ViewData
             ViewData["QrImagePath"] = $"/qr_temp/{fileName}";
+            ViewData["QrEmpId"] = empleado.Id;
+            ViewData["QrEmpleadoId"] = empleado.EmpleadoId;
+            ViewData["QrEmpleadoNombre"] = $"{empleado.Nombre} {empleado.Apellidos}";
+            ViewData["QrFechaCreacion"] = qr.FechaCreacion.ToString("yyyy-MM-dd HH:mm:ss");
 
             // Volver a cargar la lista de empleados y mostrar la imagen
-            var empleados = await _context.Empleados.ToListAsync();
-            return View("Index", empleados);
+            var empleadosViewModel = await ObtenerEmpleadosConQRViewModelAsync();
+            return View("Index", empleadosViewModel);
         }
 
         // Método auxiliar
@@ -198,6 +211,90 @@ namespace SayApp.FichajesQR.Gestion.Controllers
             System.Diagnostics.Debug.WriteLine($"GUID descifrado: {guidADDescifrado}");
             System.Diagnostics.Debug.WriteLine($"GUID coincide: {guidCoincide}");
             System.Diagnostics.Debug.WriteLine($"Checksum coincide: {chkCoincide}");
+        }
+
+        [HttpGet]
+        public async Task<JsonResult> ComprobarQRActivo(int id)
+        {
+            var qr = await _context.EmpleadosQR
+                .Where(q => q.EmpleadoId == id && q.Activo)
+                .OrderByDescending(q => q.FechaCreacion)
+                .FirstOrDefaultAsync();
+
+            var empleado = await _context.Empleados.FirstOrDefaultAsync(e => e.Id == id);
+
+            if (qr != null && empleado != null)
+            {
+                return Json(new
+                {
+                    existe = true,
+                    empleadoId = empleado.EmpleadoId,
+                    id = empleado.Id,
+                    nombre = empleado.Nombre,
+                    apellidos = empleado.Apellidos,
+                    fecha = qr.FechaCreacion.ToString("yyyy-MM-dd HH:mm")
+                });
+            }
+            return Json(new { existe = false });
+        }
+
+        public async Task<IActionResult> Detalle(int id)
+        {
+            var empleado = await _context.Empleados.FirstOrDefaultAsync(e => e.Id == id);
+            if (empleado == null)
+            {
+                return NotFound();
+            }
+
+            var qrActivo = await _context.EmpleadosQR
+                .Where(q => q.EmpleadoId == id && q.Activo)
+                .OrderByDescending(q => q.FechaCreacion)
+                .FirstOrDefaultAsync();
+
+            var vistaModelo = new EmpleadoConQRViewModel
+            {
+                Empleado = empleado,
+                QRActivo = qrActivo
+            };
+
+            return View(vistaModelo);
+        }
+
+        private async Task<List<EmpleadoConQRViewModel>> ObtenerEmpleadosConQRViewModelAsync()
+        {
+            var empleados = await _context.Empleados
+                .Include(e => e.QRs)
+                .ToListAsync();
+
+            return empleados.Select(e => new EmpleadoConQRViewModel
+            {
+                Empleado = e,
+                QRActivo = e.QRs.FirstOrDefault(q => q.Activo)
+            }).ToList();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AnularQR(int id)
+        {
+            var qr = await _context.EmpleadosQR
+                .Where(q => q.EmpleadoId == id && q.Activo)
+                .OrderByDescending(q => q.FechaCreacion)
+                .FirstOrDefaultAsync();
+
+            if (qr != null)
+            {
+                qr.Activo = false;
+                qr.FechaDesactivacion = DateTime.UtcNow;
+                qr.DesactivadoPor = User.Identity?.Name ?? Environment.UserName;
+                await _context.SaveChangesAsync();
+                TempData["Mensaje"] = "QR desactivado correctamente.";
+            }
+            else
+            {
+                TempData["Mensaje"] = "No hay QR activo para anular.";
+            }
+
+            return RedirectToAction("Index");
         }
     }
 }
