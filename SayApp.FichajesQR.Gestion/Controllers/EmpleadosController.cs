@@ -25,7 +25,15 @@ namespace SayApp.FichajesQR.Gestion.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var lista = await ObtenerEmpleadosConQRViewModelAsync();
+            var empleados = await _context.Empleados
+                .Include(e => e.QRs)
+                .ToListAsync();
+
+            var lista = empleados.Select(e => new EmpleadoConQRViewModel
+            {
+                Empleado = e,
+                QRActivo = e.QRs.FirstOrDefault(q => q.Activo)
+            }).ToList();
 
             return View(lista);
         }
@@ -292,6 +300,44 @@ namespace SayApp.FichajesQR.Gestion.Controllers
             else
             {
                 TempData["Mensaje"] = "No hay QR activo para anular.";
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        public async Task<IActionResult> SimularFichaje(int id)
+        {
+            // Obtener el QR activo del empleado
+            var qr = await _context.EmpleadosQR
+                .Where(q => q.EmpleadoId == id && q.Activo)
+                .OrderByDescending(q => q.FechaCreacion)
+                .FirstOrDefaultAsync();
+
+            if (qr == null)
+            {
+                TempData["Mensaje"] = "No existe un QR activo para este empleado.";
+                return RedirectToAction("Index");
+            }
+
+            // Llamada API al Worker
+            using var httpClient = new HttpClient();
+            // Cambia la URL por la de tu Worker real
+            var apiUrl = "https://localhost:5001/api/fichajes/simular";
+            var payload = new
+            {
+                codigoQR = qr.CodigoQR,
+                empleadoId = id
+            };
+            var response = await httpClient.PostAsJsonAsync(apiUrl, payload);
+
+            if (response.IsSuccessStatusCode)
+            {
+                TempData["Mensaje"] = "Fichaje simulado correctamente.";
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                TempData["Mensaje"] = $"Error al simular fichaje: {error}";
             }
 
             return RedirectToAction("Index");

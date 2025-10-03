@@ -4,7 +4,13 @@ using SayApp.FichajesQR.Data.DbContexts;
 using SayApp.FichajesQR.Data.DbContexts.App.Entities;
 using SayApp.FichajesQR.Worker;
 
-var builder = Host.CreateApplicationBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddControllers();
+
+// --- Añade estas dos líneas para Swagger ---
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+// --------------------------------------------
 
 // Leer configuración
 var configuration = builder.Configuration;
@@ -23,5 +29,17 @@ builder.Services.AddDbContext<SuasorDbContext>(options =>
 
 builder.Services.AddHostedService<Worker>();
 
-var host = builder.Build();
-host.Run();
+var app = builder.Build();
+app.MapControllers();
+
+Console.WriteLine(">>> Worker API arrancando y escuchando peticiones HTTP/HTTPS...");
+
+// --- Añade este bloque para habilitar Swagger en desarrollo ---
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+// --------------------------------------------------------------
+
+app.Run();

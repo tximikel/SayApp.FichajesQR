@@ -29,8 +29,9 @@
         </tr>
     </thead>
     <tbody>
-    @foreach (var item in Model)
+    @foreach (var item in Model ?? Enumerable.Empty<SayApp.FichajesQR.Gestion.ViewModels.EmpleadoConQRViewModel>())
     {
+        if (item?.Empleado == null) { continue; }
         <tr>
             <td>@item.Empleado.Id</td>
             <td>@item.Empleado.EmpleadoId</td>
@@ -81,6 +82,13 @@
                         data-apellidos="@item.Empleado.Apellidos"
                         @(item.QRActivo != null && item.QRActivo.Activo ? "" : "disabled")>
                     Anular QR
+                </button>
+                <button class="btn btn-secondary simular-fichaje-btn"
+                        data-id="@item.Empleado.Id"
+                        data-nombre="@item.Empleado.Nombre"
+                        data-apellidos="@item.Empleado.Apellidos"
+                        @(item.QRActivo != null && item.QRActivo.Activo ? "" : "disabled")>
+                    Simular Fichaje
                 </button>
             </td>
         </tr>
@@ -210,6 +218,15 @@ document.getElementById('confirmarAnularQRBtn').addEventListener('click', functi
         document.getElementById('anularQRId').value = anularQRId;
         document.getElementById('anularQRForm').submit();
     }
+});
+
+document.querySelectorAll('.simular-fichaje-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+        const id = this.getAttribute('data-id');
+        if (confirm('¿Deseas simular un fichaje para este empleado?')) {
+            window.location.href = `/Empleados/SimularFichaje/${id}`;
+        }
+    });
 });
 </script>
 }
