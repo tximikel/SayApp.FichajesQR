@@ -1,6 +1,6 @@
 ﻿using Foundation;
 
-namespace SayApp.FichajesQR.LectorAndroid
+namespace SayApp.FichajesQR.LectorAndroid_Net8
 {
     [Register("AppDelegate")]
     public class AppDelegate : MauiUIApplicationDelegate

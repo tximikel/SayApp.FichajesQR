@@ -2,7 +2,7 @@ using Microsoft.Maui;
 using Microsoft.Maui.Hosting;
 using System;
 
-namespace SayApp.FichajesQR.LectorAndroid
+namespace SayApp.FichajesQR.LectorAndroid_Net8
 {
     internal class Program : MauiApplication
     {
