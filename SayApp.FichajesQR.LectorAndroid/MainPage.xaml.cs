@@ -1,24 +1,25 @@
-﻿namespace SayApp.FichajesQR.LectorAndroid
+﻿using ZXing.Net.Maui;
+
+namespace SayApp.FichajesQR.LectorAndroid
 {
     public partial class MainPage : ContentPage
     {
-        int count = 0;
-
         public MainPage()
         {
             InitializeComponent();
         }
 
-        private void OnCounterClicked(object? sender, EventArgs e)
+        private void OnBarcodesDetected(object sender, BarcodeDetectionEventArgs e)
         {
-            count++;
-
-            if (count == 1)
-                CounterBtn.Text = $"Clicked {count} time";
-            else
-                CounterBtn.Text = $"Clicked {count} times";
-
-            SemanticScreenReader.Announce(CounterBtn.Text);
+            var qr = e.Results.FirstOrDefault();
+            if (qr != null)
+            {
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    resultLabel.Text = $"QR detectado: {qr.Value}";
+                    // Aquí puedes llamar a tu API para enviar el QR
+                });
+            }
         }
     }
 }

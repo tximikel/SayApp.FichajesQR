@@ -1,4 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
+using CommunityToolkit.Maui;
+using ZXing.Net.Maui;
+using ZXing.Net.Maui.Controls;
 
 namespace SayApp.FichajesQR.LectorAndroid
 {
@@ -9,6 +12,8 @@ namespace SayApp.FichajesQR.LectorAndroid
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UseMauiCommunityToolkit()
+                .UseBarcodeReader() // <-- Esta línea es obligatoria
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -16,7 +21,7 @@ namespace SayApp.FichajesQR.LectorAndroid
                 });
 
 #if DEBUG
-    		builder.Logging.AddDebug();
+            builder.Logging.AddDebug();
 #endif
 
             return builder.Build();
