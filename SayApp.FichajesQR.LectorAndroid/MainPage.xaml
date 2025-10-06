@@ -4,21 +4,50 @@
              xmlns:zxing="clr-namespace:ZXing.Net.Maui.Controls;assembly=ZXing.Net.Maui.Controls"
              x:Class="SayApp.FichajesQR.LectorAndroid.MainPage">
 
-    <Grid>
-        <zxing:CameraBarcodeReaderView
-            x:Name="barcodeReader"
-            CameraLocation="Front"
-            IsDetecting="True"
-            BarcodesDetected="OnBarcodesDetected"
-            HorizontalOptions="FillAndExpand"
-            VerticalOptions="FillAndExpand" />
+    <Grid ColumnDefinitions="2*,3*">
+        <!-- Columna izquierda: controles e información -->
+        <StackLayout Padding="20" Spacing="20">
+            <Label Text="Controles e información"
+                   FontSize="22"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Start"/>
+            <!-- Aquí puedes añadir más botones o información -->
+            <Button Text="Botón de ejemplo" />
+            <Label x:Name="resultLabel"
+                   BackgroundColor="#80000000"
+                   TextColor="White"
+                   FontSize="18"
+                   HorizontalOptions="Start"
+                   VerticalOptions="End"
+                   Margin="0,0,0,40"/>
+        </StackLayout>
 
-        <Label x:Name="resultLabel"
-               BackgroundColor="#80000000"
-               TextColor="White"
-               FontSize="18"
+        <!-- Columna derecha: vídeo de la cámara en ventana más pequeña -->
+        <Frame Grid.Column="1"
+               Padding="0"
+               Margin="20"
+               HasShadow="True"
+               CornerRadius="16"
+               VerticalOptions="Center"
+               HorizontalOptions="End"
+               HeightRequest="300"
+               WidthRequest="400">
+            <zxing:CameraBarcodeReaderView
+                x:Name="barcodeReader"
+                CameraLocation="Front"
+                IsDetecting="True"
+                BarcodesDetected="OnBarcodesDetected"
+                HorizontalOptions="FillAndExpand"
+                VerticalOptions="FillAndExpand" />
+        </Frame>
+
+        <Label x:Name="qrWarningLabel"
+               Text=""
+               TextColor="Red"
+               FontSize="16"
                HorizontalOptions="Center"
                VerticalOptions="End"
-               Margin="0,0,0,40" />
+               Margin="0,10,0,0"
+               Grid.Column="1"/>
     </Grid>
 </ContentPage>
