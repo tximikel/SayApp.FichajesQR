@@ -1,0 +1,17 @@
+
+<?xml version="1.0" encoding="utf-8" ?>
+<Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SayApp.FichajesQR.LectorAndroid.App">
+    <Application.Resources>
+        <ResourceDictionary>
+            <!-- Paleta de Mikel -->
+            <Color x:Key="OkGreen">#249429</Color>
+            <Color x:Key="WarnYellow">#C9A72B</Color>
+            <Color x:Key="BadRed">#C00000</Color>
+            <Style TargetType="ContentPage">
+                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}" />
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

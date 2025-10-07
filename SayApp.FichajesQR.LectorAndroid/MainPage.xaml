@@ -1,0 +1,42 @@
+
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:scanner="clr-namespace:BarcodeScanning;assembly=BarcodeScanning.Native.Maui"
+    x:Class="SayApp.FichajesQR.LectorAndroid.MainPage"
+    Title="Lector QR">
+
+    <Grid ColumnDefinitions="380,*">
+        <!-- Panel izquierdo -->
+        <VerticalStackLayout Padding="20" Spacing="16">
+            <Label Text="Control de acceso" FontAttributes="Bold" FontSize="18" />
+            <Button x:Name="BtnStart" Text="Iniciar cámara" Clicked="BtnStart_Clicked" />
+            <Button x:Name="BtnStop" Text="Detener cámara" Clicked="BtnStop_Clicked" />
+            <!-- Botón reservado por si expones cambio de cámara en esta versión -->
+            <Button x:Name="BtnToggleCam" Text="Cambiar cámara"
+                    IsVisible="False" Clicked="BtnToggleCam_Clicked" />
+
+            <BoxView HeightRequest="1" Color="#DDDDDD" />
+            <Label x:Name="LblEstado" Text="Estado: Inactivo" />
+            <Label x:Name="LblUltimo" Text="Último QR leído: -" LineBreakMode="TailTruncation" />
+
+            <Label Text="Instrucciones" FontAttributes="Bold" />
+            <Label Text="1) Sitúe su QR dentro del recuadro a la derecha." />
+            <Label Text="2) Acerque hasta que el borde se ponga en verde." />
+        </VerticalStackLayout>
+
+        <!-- Panel derecho: vídeo + overlay -->
+        <Grid Grid.Column="1">
+            <scanner:CameraView x:Name="Camera"
+                                CameraEnabled="False"
+                                TapToFocusEnabled="True"
+                                VibrationOnDetected="True"
+                                CaptureQuality="High"
+                                BarcodeSymbologies="QrCode"
+                                OnDetectionFinished="Camera_OnDetectionFinished" />
+
+            <GraphicsView x:Name="Overlay" />
+        </Grid>
+    </Grid>
+</ContentPage>
