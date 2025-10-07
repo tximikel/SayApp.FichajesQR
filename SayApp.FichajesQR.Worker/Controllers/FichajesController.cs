@@ -45,6 +45,6 @@ public class FichajesController : ControllerBase
 
 public class SimularFichajeDto
 {
-    public string codigoQR { get; set; }
+    public string? codigoQR { get; set; }
     public int empleadoId { get; set; }
 }
