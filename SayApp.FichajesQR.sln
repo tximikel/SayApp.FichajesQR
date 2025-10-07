@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SayApp.FichajesQR.LectorAnd
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SayApp.FichajesQR.LectorAndroid", "SayApp.FichajesQR.LectorAndroid\SayApp.FichajesQR.LectorAndroid.csproj", "{23B42558-E0AB-4BA6-8302-67F8AC1AE2C7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SayApp.FichajesQR.LectorAndroid_Net9_ZXing", "SayApp.FichajesQR.LectorAndroid_Net9_ZXing\SayApp.FichajesQR.LectorAndroid_Net9_ZXing.csproj", "{2CEDE652-5072-4B8B-93DE-7014D382998E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,6 +48,11 @@ Global
 		{23B42558-E0AB-4BA6-8302-67F8AC1AE2C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23B42558-E0AB-4BA6-8302-67F8AC1AE2C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23B42558-E0AB-4BA6-8302-67F8AC1AE2C7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2CEDE652-5072-4B8B-93DE-7014D382998E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2CEDE652-5072-4B8B-93DE-7014D382998E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2CEDE652-5072-4B8B-93DE-7014D382998E}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{2CEDE652-5072-4B8B-93DE-7014D382998E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2CEDE652-5072-4B8B-93DE-7014D382998E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
