@@ -1,32 +1,115 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net9.0-android</TargetFramework>
-    <OutputType>Exe</OutputType>
-    <UseMaui>true</UseMaui>
-    <SingleProject>true</SingleProject>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+	<PropertyGroup>
+		<TargetFramework>net9.0-android</TargetFramework>
+		<OutputType>Exe</OutputType>
+		<UseMaui>true</UseMaui>
+		<SingleProject>true</SingleProject>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
 
-    <ApplicationTitle>SayApp Fichajes QR</ApplicationTitle>
-    <ApplicationId>com.sayapp.fichajesqr.lectorandroid</ApplicationId>
-    <ApplicationVersion>1</ApplicationVersion>
-    <ApplicationDisplayVersion>1.0.0</ApplicationDisplayVersion>
-    <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
+		<ApplicationTitle>SayApp Fichajes QR</ApplicationTitle>
+		<ApplicationId>com.sayapp.fichajesqr.lectorandroid</ApplicationId>
+		<ApplicationVersion>1</ApplicationVersion>
+		<ApplicationDisplayVersion>1.0.0</ApplicationDisplayVersion>
+		<SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
 
-    <RootNamespace>SayApp.FichajesQR.LectorAndroid</RootNamespace>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
-  </PropertyGroup>
+		<RootNamespace>SayApp.FichajesQR.LectorAndroid</RootNamespace>
+	</PropertyGroup>
 
+	<!-- ============================= -->
+	<!-- 🔍 Configuración DEBUG (rápida para desarrollo y pruebas) -->
+	<!-- ============================= -->
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+		<!-- No incrustar las DLL en el APK (despliegue más rápido) -->
+		<EmbedAssembliesIntoApk>False</EmbedAssembliesIntoApk>
+		<!-- Desactivar linker (evita eliminar código necesario para debug) -->
+		<AndroidLinkMode>None</AndroidLinkMode>
+		<!-- Desactivar compilación AOT (evita builds lentos) -->
+		<RunAOTCompilation>false</RunAOTCompilation>
+		<!-- Desactivar profiled AOT (también reduce tiempo de build) -->
+		<AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
+		<!-- Incluir símbolos de depuración (.pdb) -->
+		<DebugSymbols>true</DebugSymbols>
+		<!-- Usar formato portable de símbolos (compatible VS / VSCode / Rider) -->
+		<DebugType>portable</DebugType>
+		<!-- Desactivar optimizaciones del compilador (más fácil depurar) -->
+		<Optimize>false</Optimize>
+		<!-- Usar intérprete .NET (Hot Reload más estable) -->
+		<UseInterpreter>true</UseInterpreter>
+	</PropertyGroup>
+
+	<!-- =========================================
+       CONFIGURACIÓN DE COMPILACIÓN RÁPIDA (QuickDebug)
+       ========================================= -->
+	<PropertyGroup Condition="'$(Configuration)' == 'QuickDebug'">
+		<!-- Base -->
+		<PlatformTarget>AnyCPU</PlatformTarget>
+		<DebugType>portable</DebugType>
+		<Optimize>false</Optimize>
+		<DefineConstants>DEBUG;TRACE</DefineConstants>
+
+		<!-- Desactiva Fast Deployment y Shared Runtime -->
+		<AndroidUseSharedRuntime>false</AndroidUseSharedRuntime>
+		<EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+		<AndroidFastDeploymentType>None</AndroidFastDeploymentType>
+
+		<!-- Evita regenerar cada ensamblado individual -->
+		<AotAssemblies>false</AotAssemblies>
+		<MauiEnableVerifier>false</MauiEnableVerifier>
+
+		<!-- Limpia y acelera la fase de empaquetado -->
+		<AndroidLinkMode>None</AndroidLinkMode>
+		<AndroidEnableProfiler>false</AndroidEnableProfiler>
+		<AndroidStripNativeDebugSymbols>false</AndroidStripNativeDebugSymbols>
+
+		<!-- Desactiva features de VS que añaden latencia -->
+		<UseInterpreter>false</UseInterpreter>
+		<UseSharedCompilation>false</UseSharedCompilation>
+		<UseFastUpToDateCheck>false</UseFastUpToDateCheck>
+		<EnableDefaultItems>true</EnableDefaultItems>
+
+		<!-- Evita subir los símbolos innecesarios -->
+		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+
+		<!-- Mantiene configuración de compilación reproducible -->
+		<Deterministic>true</Deterministic>
+		<RunAnalyzers>false</RunAnalyzers>
+
+		<!-- Otras optimizaciones recomendadas -->
+		<RunAOTCompilation>false</RunAOTCompilation>
+		<AndroidPackageFormat>apk</AndroidPackageFormat>
+		<GenerateAppBundle>false</GenerateAppBundle>
+
+		<!-- Modo log silencioso -->
+		<SuppressIldasm>true</SuppressIldasm>
+		<NoWarn>$(NoWarn);CS1591</NoWarn>
+
+		<!-- Compatible con .NET 8/9 y MAUI -->
+		<UseMaui>true</UseMaui>
+		<MauiStripSymbols>true</MauiStripSymbols>
+	</PropertyGroup>
+	<!--
+		Pasos para usarlo en Visual Studio 2022:
+		1) Abre el menú Compilar → Configuración de solución → Administrar configuraciones…
+		2) Duplica la configuración Debug y renómbrala como QuickDebug.
+		3) Asegúrate de que todas las plataformas activas (como net9.0-android) usan QuickDebug.
+		4) Guarda y selecciona “QuickDebug” en la barra superior de VS2022 antes de compilar.
+		>Se generará un APK completo, sin Fast Deployment, más rápido que Debug.
+		>Podrás ejecutar directamente sin reiniciar ADB ni usar el IDE lento.
+		>Ideal para pruebas rápidas en dispositivos físicos.
+		>No es compatible con Hot Reload ni depuración paso a paso.
+		>No usar en producción ni versiones finales.
+	-->
+
+	<!-- 📦 Paquetes -->
 	<ItemGroup>
-	  <PackageReference Include="BarcodeScanning.Native.Maui" Version="2.2.1" />
-	  <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.82" />
-	  <PackageReference Include="Microsoft.Maui.Core" Version="9.0.82" />
-	  <PackageReference Include="Microsoft.Maui.Essentials" Version="9.0.82" />
-	  <PackageReference Include="Xamarin.Google.MLKit.Common" Version="118.11.0.3" />
-	  <PackageReference Include="Xamarin.GooglePlayServices.MLKit.BarcodeScanning" Version="118.3.1.3" />
-	  <PackageReference Include="Xamarin.GooglePlayServices.Base" Version="118.7.0.1" />
-	  <PackageReference Include="Xamarin.GooglePlayServices.Basement" Version="118.7.0.1" />
+		<PackageReference Include="BarcodeScanning.Native.Maui" Version="2.2.1" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.82" />
+		<PackageReference Include="Microsoft.Maui.Core" Version="9.0.82" />
+		<PackageReference Include="Microsoft.Maui.Essentials" Version="9.0.82" />
+		<PackageReference Include="Xamarin.Google.MLKit.Common" Version="118.11.0.3" />
+		<PackageReference Include="Xamarin.GooglePlayServices.MLKit.BarcodeScanning" Version="118.3.1.3" />
+		<PackageReference Include="Xamarin.GooglePlayServices.Base" Version="118.7.0.1" />
+		<PackageReference Include="Xamarin.GooglePlayServices.Basement" Version="118.7.0.1" />
 	</ItemGroup>
 </Project>
