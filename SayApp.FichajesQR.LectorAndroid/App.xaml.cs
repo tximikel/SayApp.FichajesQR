@@ -5,9 +5,8 @@ namespace SayApp.FichajesQR.LectorAndroid;
 
 public partial class App : Application
 {
-    public App()
+    protected override Window CreateWindow(IActivationState? activationState)
     {
-        InitializeComponent();
-        MainPage = new NavigationPage(new MainPage());
+        return new Window(new MainPage());
     }
 }
