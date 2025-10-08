@@ -13,6 +13,8 @@
     <div class="alert alert-info">@TempData["Mensaje"]</div>
 }
 
+<button id="btnSincronizar" class="btn btn-primary">Sincronizar Empleados</button>
+
 <table class="table">
     <thead>
         <tr>
@@ -228,5 +230,52 @@ document.querySelectorAll('.simular-fichaje-btn').forEach(btn => {
         }
     });
 });
+
+document.getElementById('btnSincronizar').addEventListener('click', function () {
+    if (confirm('¿Deseas sincronizar los empleados con el sistema externo?')) {
+        // Deshabilitar el botón para prevenir clics múltiples
+        this.disabled = true;
+        this.innerHTML = 'Sincronizando...';
+
+        fetch('/Empleados/SincronizarEmpleados')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Sincronización completada con éxito.');
+                    // Recargar la página para mostrar los cambios
+                    location.reload();
+                } else {
+                    alert('Error en la sincronización: ' + data.message);
+                    // Volver a habilitar el botón
+                    this.disabled = false;
+                    this.innerHTML = 'Sincronizar Empleados';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Se produjo un error al sincronizar: ' + error.message);
+                // Volver a habilitar el botón
+                this.disabled = false;
+                this.innerHTML = 'Sincronizar Empleados';
+            });
+    }
+});
+
+$('#btnSincronizar').click(function () {
+        $.get('@Url.Action("SincronizarPreview", "Empleados")', function (data) {
+            // Muestra el resumen y pregunta si aplicar
+            let resumen = "<h5>Resumen de sincronización</h5>";
+            resumen += "<ul>";
+            resumen += "<li>Nuevos empleados: " + data.nuevos.length + "</li>";
+            resumen += "<li>Bajas detectadas: " + data.bajas.length + "</li>";
+            resumen += "</ul>";
+            if (confirm(resumen + "\n¿Desea aplicar los cambios?")) {
+                $.post('@Url.Action("SincronizarAplicar", "Empleados")', function (result) {
+                    alert(result.mensaje);
+                    location.reload();
+                });
+            }
+        });
+    });
 </script>
 }

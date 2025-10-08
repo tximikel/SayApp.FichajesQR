@@ -10,22 +10,26 @@ using System.Drawing.Imaging;
 using System.Security.Cryptography;
 using System.Text;
 using SayApp.FichajesQR.Gestion.ViewModels;
+using SayApp.FichajesQR.Data.OData;
+using Microsoft.Extensions.Configuration;
 
 
 namespace SayApp.FichajesQR.Gestion.Controllers
 {
     public class EmpleadosController : Controller
     {
-        private readonly AppDBContext _context;
+        private readonly AppDBContext _db;
+        private readonly IConfiguration _configuration;
 
-        public EmpleadosController(AppDBContext context)
+        public EmpleadosController(AppDBContext db, IConfiguration configuration)
         {
-            _context = context;
+            _db = db;
+            _configuration = configuration;
         }
 
         public async Task<IActionResult> Index()
         {
-            var empleados = await _context.Empleados
+            var empleados = await _db.Empleados
                 .Include(e => e.QRs)
                 .ToListAsync();
 
@@ -78,7 +82,7 @@ namespace SayApp.FichajesQR.Gestion.Controllers
         public async Task<IActionResult> CrearQR(int id)
         {
             var generadoPor = User.Identity?.Name ?? Environment.UserName;
-            var empleado = await _context.Empleados.FirstOrDefaultAsync(e => e.Id == id);
+            var empleado = await _db.Empleados.FirstOrDefaultAsync(e => e.Id == id);
             if (empleado == null)
             {
                 TempData["Mensaje"] = "Empleado no encontrado.";
@@ -99,7 +103,7 @@ namespace SayApp.FichajesQR.Gestion.Controllers
             var payloadFinal = $"{idStr}|{guidShort}|{fechaCorta}|{chk}";
 
             // Anular otros QR activos del empleado
-            var otrosQR = await _context.EmpleadosQR
+            var otrosQR = await _db.EmpleadosQR
                 .Where(q => q.EmpleadoId == id && q.Activo)
                 .ToListAsync();
             foreach (var qr in otrosQR)
@@ -117,8 +121,8 @@ namespace SayApp.FichajesQR.Gestion.Controllers
                 FechaCreacion = DateTime.UtcNow,
                 CreadoPor = generadoPor
             };
-            _context.EmpleadosQR.Add(empleadoQR);
-            await _context.SaveChangesAsync();
+            _db.EmpleadosQR.Add(empleadoQR);
+            await _db.SaveChangesAsync();
 
             ProbarDescifradoYVerificacion(payloadFinal, guidADShort);
 
@@ -128,7 +132,7 @@ namespace SayApp.FichajesQR.Gestion.Controllers
 
         public async Task<IActionResult> GenerarImagenQR(int id)
         {
-            var qr = await _context.EmpleadosQR
+            var qr = await _db.EmpleadosQR
                 .Where(q => q.EmpleadoId == id && q.Activo)
                 .OrderByDescending(q => q.FechaCreacion)
                 .FirstOrDefaultAsync();
@@ -139,7 +143,7 @@ namespace SayApp.FichajesQR.Gestion.Controllers
                 return RedirectToAction("Index");
             }
 
-            var empleado = await _context.Empleados.FirstOrDefaultAsync(e => e.Id == id);
+            var empleado = await _db.Empleados.FirstOrDefaultAsync(e => e.Id == id);
             if (empleado == null)
             {
                 TempData["Mensaje"] = "Empleado no encontrado.";
@@ -224,12 +228,12 @@ namespace SayApp.FichajesQR.Gestion.Controllers
         [HttpGet]
         public async Task<JsonResult> ComprobarQRActivo(int id)
         {
-            var qr = await _context.EmpleadosQR
+            var qr = await _db.EmpleadosQR
                 .Where(q => q.EmpleadoId == id && q.Activo)
                 .OrderByDescending(q => q.FechaCreacion)
                 .FirstOrDefaultAsync();
 
-            var empleado = await _context.Empleados.FirstOrDefaultAsync(e => e.Id == id);
+            var empleado = await _db.Empleados.FirstOrDefaultAsync(e => e.Id == id);
 
             if (qr != null && empleado != null)
             {
@@ -248,13 +252,13 @@ namespace SayApp.FichajesQR.Gestion.Controllers
 
         public async Task<IActionResult> Detalle(int id)
         {
-            var empleado = await _context.Empleados.FirstOrDefaultAsync(e => e.Id == id);
+            var empleado = await _db.Empleados.FirstOrDefaultAsync(e => e.Id == id);
             if (empleado == null)
             {
                 return NotFound();
             }
 
-            var qrActivo = await _context.EmpleadosQR
+            var qrActivo = await _db.EmpleadosQR
                 .Where(q => q.EmpleadoId == id && q.Activo)
                 .OrderByDescending(q => q.FechaCreacion)
                 .FirstOrDefaultAsync();
@@ -270,7 +274,7 @@ namespace SayApp.FichajesQR.Gestion.Controllers
 
         private async Task<List<EmpleadoConQRViewModel>> ObtenerEmpleadosConQRViewModelAsync()
         {
-            var empleados = await _context.Empleados
+            var empleados = await _db.Empleados
                 .Include(e => e.QRs)
                 .ToListAsync();
 
@@ -284,7 +288,7 @@ namespace SayApp.FichajesQR.Gestion.Controllers
         [HttpPost]
         public async Task<IActionResult> AnularQR(int id)
         {
-            var qr = await _context.EmpleadosQR
+            var qr = await _db.EmpleadosQR
                 .Where(q => q.EmpleadoId == id && q.Activo)
                 .OrderByDescending(q => q.FechaCreacion)
                 .FirstOrDefaultAsync();
@@ -294,7 +298,7 @@ namespace SayApp.FichajesQR.Gestion.Controllers
                 qr.Activo = false;
                 qr.FechaDesactivacion = DateTime.UtcNow;
                 qr.DesactivadoPor = User.Identity?.Name ?? Environment.UserName;
-                await _context.SaveChangesAsync();
+                await _db.SaveChangesAsync();
                 TempData["Mensaje"] = "QR desactivado correctamente.";
             }
             else
@@ -308,7 +312,7 @@ namespace SayApp.FichajesQR.Gestion.Controllers
         public async Task<IActionResult> SimularFichaje(int id)
         {
             // Obtener el QR activo del empleado
-            var qr = await _context.EmpleadosQR
+            var qr = await _db.EmpleadosQR
                 .Where(q => q.EmpleadoId == id && q.Activo)
                 .OrderByDescending(q => q.FechaCreacion)
                 .FirstOrDefaultAsync();
@@ -341,6 +345,72 @@ namespace SayApp.FichajesQR.Gestion.Controllers
             }
 
             return RedirectToAction("Index");
+        }
+
+        // Vista previa de sincronización
+        [HttpGet]
+        public async Task<IActionResult> SincronizarPreview()
+        {
+            var odataService = new ODataEmpleadosService(
+                _configuration["OData:BaseUrl"],
+                _configuration["OData:Username"],
+                _configuration["OData:Password"]
+            );
+            var externos = await odataService.GetEmpleadosAsync();
+            var locales = _db.Empleados.ToList();
+
+            // Detectar nuevos y bajas
+            var nuevos = externos.Where(e => !locales.Any(l => l.DNI == e.Cod_Empleado)).ToList();
+            var bajas = locales.Where(l => !externos.Any(e => e.Cod_Empleado == l.DNI)).ToList();
+
+            return Json(new { nuevos, bajas });
+        }
+
+        // Aplicar sincronización
+        [HttpPost]
+        public async Task<IActionResult> SincronizarAplicar()
+        {
+            var odataService = new ODataEmpleadosService(
+                _configuration["OData:BaseUrl"],
+                _configuration["OData:Username"],
+                _configuration["OData:Password"]
+            );
+            var externos = await odataService.GetEmpleadosAsync();
+            var locales = _db.Empleados.ToList();
+
+            // Nuevos empleados
+            var nuevos = externos.Where(e => !locales.Any(l => l.DNI == e.Cod_Empleado)).ToList();
+            foreach (var emp in nuevos)
+            {
+                bool esAlta = emp.Fecha_baja == DateTime.MinValue;
+                var nuevo = new Empleado
+                {
+                    DNI = emp.Cod_Empleado,
+                    Nombre = emp.Nombre,
+                    Apellidos = $"{emp.Primer_apellido} {emp.Segundo_apellido}".Trim(),
+                    Estado = esAlta ? "Alta" : "Baja",
+                    FechaAlta = esAlta ? emp.Fecha_alta : DateTime.MinValue,
+                    FechaBaja = !esAlta ? emp.Fecha_baja : null,
+                    FechaCreacion = DateTime.UtcNow,
+                    CreadoPor = User.Identity?.Name ?? Environment.UserName
+                    // Otros campos si lo necesitas
+                };
+                _db.Empleados.Add(nuevo);
+                // Aquí puedes crear el QR si lo necesitas
+            }
+
+            // Bajas
+            var bajas = locales.Where(l => !externos.Any(e => e.Cod_Empleado == l.DNI)).ToList();
+            foreach (var baja in bajas)
+            {
+                baja.Estado = "Baja";
+                baja.FechaBaja = DateTime.UtcNow;
+                // Aquí puedes anular el QR si lo necesitas
+            }
+
+            await _db.SaveChangesAsync();
+
+            return Json(new { mensaje = "Sincronización aplicada correctamente." });
         }
     }
 }

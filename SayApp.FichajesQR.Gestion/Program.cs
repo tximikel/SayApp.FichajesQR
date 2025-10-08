@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SayApp.FichajesQR.Data.DbContexts;
+using SayApp.FichajesQR.Data.OData;
 
 var builder = WebApplication.CreateBuilder(args);
 
