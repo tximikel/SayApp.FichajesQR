@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>dotnet-SayApp.FichajesQR.Worker-d80388d5-380e-4803-aa2d-e898baabff85</UserSecretsId>
+    <Configurations>Debug;Release;QuickDebug</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
