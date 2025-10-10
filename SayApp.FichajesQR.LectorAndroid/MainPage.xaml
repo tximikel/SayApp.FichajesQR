@@ -2,12 +2,11 @@
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-	xmlns:scanner="clr-namespace:BarcodeScanning;assembly=BarcodeScanning.Native.Maui"
+    xmlns:scanner="clr-namespace:BarcodeScanning;assembly=BarcodeScanning.Native.Maui"
     x:Class="SayApp.FichajesQR.LectorAndroid.MainPage"
     BackgroundColor="#121212">
 
     <Grid ColumnDefinitions="380,*" Padding="0" Margin="0">
-        <!-- Panel izquierdo -->
         <VerticalStackLayout Padding="20" Spacing="16" BackgroundColor="#1E1E1E">
             <Label Text="Control de acceso" FontAttributes="Bold" FontSize="20" TextColor="White" />
             <Button Text="Iniciar cámara" Clicked="BtnStart_Clicked" BackgroundColor="#249429" TextColor="White" />
@@ -20,22 +19,25 @@
             <Label x:Name="LblCalib" Text="Calibración: Sin aplicar" FontSize="13" TextColor="#FFD700" Margin="0,5,0,0" />
         </VerticalStackLayout>
 
-		<!-- Panel derecho: cámara y overlay -->
-		<Grid Grid.Column="1" Padding="0" Margin="0">
-			<scanner:CameraView x:Name="Camera"
-								CameraEnabled="True"
-								CameraFacing="Front"
-								TapToFocusEnabled="True"
-								VibrationOnDetected="True"
-								CaptureQuality="High"
-								BarcodeSymbologies="QRCode"
-								OnDetectionFinished="Camera_OnDetectionFinished"
-								BackgroundColor="Black"
-								HorizontalOptions="Fill"
-								VerticalOptions="Fill" />
-			<GraphicsView x:Name="Overlay"
-						  HorizontalOptions="Fill"
-						  VerticalOptions="Fill"/>
-		</Grid>
+        <Grid Grid.Column="1">
+			<scanner:CameraView
+				x:Name="Camera"
+				CameraEnabled="True"
+				CameraFacing="Front"
+				TapToFocusEnabled="True"
+				VibrationOnDetected="True"
+				CaptureQuality="High"
+				BarcodeSymbologies="All"
+				OnDetectionFinished="Camera_OnDetectionFinished"
+				BackgroundColor="Black"
+				HorizontalOptions="Fill"
+				VerticalOptions="Fill" />
+
+			<GraphicsView 
+				x:Name="Overlay"
+				InputTransparent="True"
+				HorizontalOptions="Fill"
+				VerticalOptions="Fill" />
+		  </Grid>
     </Grid>
 </ContentPage>

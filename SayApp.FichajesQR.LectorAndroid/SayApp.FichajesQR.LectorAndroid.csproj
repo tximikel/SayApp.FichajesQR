@@ -113,6 +113,7 @@
   <!-- ============================= -->
   <ItemGroup>
     <!-- 🧩 Base MAUI -->
+    <PackageReference Include="BarcodeScanning.Native.Maui" Version="1.2.5" />
     <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.110" />
     <PackageReference Include="Microsoft.Maui.Core" Version="9.0.110" />
     <PackageReference Include="Microsoft.Maui.Essentials" Version="9.0.110" />
@@ -121,7 +122,6 @@
     <PackageReference Include="CommunityToolkit.Maui" Version="9.0.0" />
 
     <!-- 🤖 BarcodeScanning.Native.Maui (MLKit + CameraX integrados, .NET 9 compatible) -->
-    <PackageReference Include="BarcodeScanning.Native.Maui" Version="1.2.*" />
   </ItemGroup>
 
   <!-- ============================= -->

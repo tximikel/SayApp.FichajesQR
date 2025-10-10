@@ -2,10 +2,8 @@ using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Storage;
 using System.Collections.ObjectModel;
-
-// 👇 OJO: estos dos
-using BarcodeScanning;               // Tipos: CameraView, BarcodeResult, BarcodeFormats, OnDetectionFinishedEventArg
-using BarcodeScanning.Native.Maui;   // Extensiones/registro del paquete
+using System.Linq;
+using BarcodeScanning; // ✅ v1.2.5
 
 namespace SayApp.FichajesQR.LectorAndroid
 {
@@ -17,11 +15,18 @@ namespace SayApp.FichajesQR.LectorAndroid
         private bool _calibrated;
         private float _calibOffsetX, _calibOffsetY;
 
+        // Tamaño fuente del frame que usa MLKit (fallback típico)
+        const float SourceWidth = 1080f;
+        const float SourceHeight = 1920f;
+
         public MainPage()
         {
             InitializeComponent();
+
             _drawable = new BoundingDrawable(_boxes, () => _hasDetection ? Colors.LimeGreen : Colors.Goldenrod);
             Overlay.Drawable = _drawable;
+
+            Camera.OnDetectionFinished += Camera_OnDetectionFinished;
         }
 
         protected override async void OnAppearing()
@@ -32,49 +37,102 @@ namespace SayApp.FichajesQR.LectorAndroid
             if (camStatus != PermissionStatus.Granted)
                 await Permissions.RequestAsync<Permissions.Camera>();
 
+            // ✅ Forzar cámara frontal y detección activa
+            Camera.CameraFacing = CameraFacing.Front;
+            Camera.CameraEnabled = true;
+
+            // Cargar calibración guardada
             _calibOffsetX = Preferences.Get("CalibOffsetX", 0f);
             _calibOffsetY = Preferences.Get("CalibOffsetY", 0f);
             _calibrated = Preferences.Get("CalibActive", false);
 
             LblEstado.Text = "Escaneando...";
+
+            // ❌ Quitamos el cuadro temporal para no confundir el overlay
+            _boxes.Clear();
+            Overlay.Invalidate();
         }
 
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
-            Camera.IsActive = false;
+            Camera.OnDetectionFinished -= Camera_OnDetectionFinished;
             _boxes.Clear();
             Overlay.Invalidate();
         }
 
-		// ✅ Evento correcto para BarcodeScanning.Native.Maui 1.2.5
-		private void Camera_OnDetectionFinished(object sender, OnDetectionFinishedEventArg e)
-		{
-			MainThread.BeginInvokeOnMainThread(() =>
-			{
-				if (e.BarcodeResults == null || e.BarcodeResults.Count == 0)
-				{
-					LblEstado.Text = "Escaneando...";
-					return;
-				}
+        private void Camera_OnDetectionFinished(object sender, OnDetectionFinishedEventArg e)
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                var results = e.BarcodeResults?.ToArray() ?? Array.Empty<BarcodeResult>();
 
-				var first = e.BarcodeResults.FirstOrDefault();
-				var value = first?.Text ?? "(sin valor)";
+                _boxes.Clear();
+                _hasDetection = results.Length > 0;
 
-				LblUltimo.Text = $"Último QR leído: {value}";
-				LblEstado.Text = "QR detectado correctamente";
-			});
-		}
+                if (!_hasDetection)
+                {
+                    LblEstado.Text = "Escaneando...";
+                    Overlay.Invalidate();
+                    return;
+                }
+
+                float viewW = (float)Overlay.Width;
+                float viewH = (float)Overlay.Height;
+
+                // Escala tipo "aspect fit" del frame fuente al área del Overlay
+                float scale = Math.Min(viewW / SourceWidth, viewH / SourceHeight);
+                float scaledW = SourceWidth * scale;
+                float scaledH = SourceHeight * scale;
+                float offX = (viewW - scaledW) / 2f;
+                float offY = (viewH - scaledH) / 2f;
+
+                bool mirrorX = Camera.CameraFacing == CameraFacing.Front;
+
+                foreach (var r in results)
+                {
+                    var b = r.BoundingBox; // coords en píxeles del frame fuente
+
+                    // 1) Escalar a la superficie escalada
+                    float x = offX + b.X * scale;
+                    float y = offY + b.Y * scale;
+                    float w = b.Width * scale;
+                    float h = b.Height * scale;
+
+                    // 2) Espejar en X (dentro del rectángulo escalado), para cámara frontal
+                    if (mirrorX)
+                    {
+                        x = offX + (scaledW - (x - offX) - w);
+                    }
+
+                    // 3) Aplicar offset de calibración (si lo tienes activo)
+                    if (_calibrated)
+                    {
+                        x += _calibOffsetX;
+                        y += _calibOffsetY;
+                    }
+
+                    _boxes.Add(new RectF(x, y, w, h));
+                }
+
+                var first = results[0];
+                var value = first.DisplayValue ?? first.RawValue ?? "(sin valor)";
+                LblUltimo.Text = $"Último QR leído: {value}";
+                LblEstado.Text = $"Detectado {results.Length} código(s)";
+
+                Overlay.Invalidate();
+            });
+        }
 
         private void BtnStart_Clicked(object sender, EventArgs e)
         {
-            Camera.IsActive = true;
+            Camera.CameraEnabled = true;
             LblEstado.Text = "Escaneando...";
         }
 
         private void BtnStop_Clicked(object sender, EventArgs e)
         {
-            Camera.IsActive = false;
+            Camera.CameraEnabled = false;
             _boxes.Clear();
             _hasDetection = false;
             Overlay.Invalidate();
@@ -83,9 +141,9 @@ namespace SayApp.FichajesQR.LectorAndroid
 
         private void BtnToggleCam_Clicked(object sender, EventArgs e)
         {
-            Camera.CameraFacing = Camera.CameraFacing == CameraFacing.Back
-                ? CameraFacing.Front
-                : CameraFacing.Back;
+            Camera.CameraFacing = Camera.CameraFacing == CameraFacing.Front
+                ? CameraFacing.Back
+                : CameraFacing.Front;
 
             DisplayAlert("Cámara", $"Ahora: {Camera.CameraFacing}", "OK");
         }
@@ -105,10 +163,11 @@ namespace SayApp.FichajesQR.LectorAndroid
             Preferences.Set("CalibOffsetX", _calibOffsetX);
             Preferences.Set("CalibOffsetY", _calibOffsetY);
             Preferences.Set("CalibActive", true);
+            Preferences.Set("CalibDate", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
 
-            LblCalib.Text = $"Calibración activa: X={_calibOffsetX:0.0}, Y={_calibOffsetY:0.0}";
+            LblCalib.Text = $"Calibración activa: X={_calibOffsetX:0.0}, Y={_calibOffsetY:0.0}\n{DateTime.Now:dd/MM/yyyy HH:mm:ss}";
             LblCalib.TextColor = Colors.LimeGreen;
-            LblEstado.Text = $"Calibración aplicada";
+            LblEstado.Text = $"Calibración aplicada: {_calibOffsetX:0.0}, {_calibOffsetY:0.0}";
         }
 
         private void BtnResetCalib_Clicked(object sender, EventArgs e)
@@ -124,7 +183,7 @@ namespace SayApp.FichajesQR.LectorAndroid
             LblEstado.Text = "Calibración desactivada";
         }
 
-        // 🎨 Dibujo del marco de detección
+        // 🎨 Dibujo del overlay (ya recibe cajas en coordenadas de pantalla)
         public sealed class BoundingDrawable : IDrawable
         {
             private readonly IReadOnlyCollection<RectF> _boxes;
@@ -141,28 +200,20 @@ namespace SayApp.FichajesQR.LectorAndroid
             {
                 _scanPhase = (_scanPhase + 0.02f) % 1f;
 
-                var margin = 40f;
-                var guide = new RectF(dirtyRect.X + margin, dirtyRect.Y + margin,
-                                      dirtyRect.Width - 2 * margin, dirtyRect.Height - 2 * margin);
-
-                canvas.FillColor = new Color(0, 0, 0, 0.45f);
-                var path = new PathF();
-                path.AppendRectangle(dirtyRect);
-                path.AppendRoundedRectangle(guide, 18);
-                path.Close();
-                canvas.FillPath(path, WindingMode.EvenOdd);
-
-                canvas.StrokeColor = _getGuideColor();
-                canvas.StrokeSize = 4;
-                canvas.DrawRoundedRectangle(guide, 18);
+                canvas.FillColor = new Color(0, 0, 0, 0.35f);
+                canvas.FillRectangle(dirtyRect);
 
                 foreach (var b in _boxes)
                 {
-                    canvas.StrokeColor = Colors.Lime;
+                    // Recuadro
+                    canvas.StrokeColor = _getGuideColor();
                     canvas.StrokeSize = 3;
                     canvas.DrawRoundedRectangle(b, 12);
 
+                    // “Láser”
                     float lineY = b.Y + b.Height * _scanPhase;
+                    canvas.StrokeColor = Colors.Red;
+                    canvas.StrokeSize = 2;
                     canvas.DrawLine(b.X, lineY, b.X + b.Width, lineY);
                 }
             }

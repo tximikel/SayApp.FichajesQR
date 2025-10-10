@@ -1,7 +1,7 @@
-using Microsoft.Maui;
-using Microsoft.Maui.Hosting;
 using CommunityToolkit.Maui;
-using BarcodeScanning.Native.Maui;   // ✅ correcto para la versión 1.2.5
+using Microsoft.Maui.Controls.Hosting;
+using Microsoft.Maui.Hosting;
+using BarcodeScanning; // 👈 Este namespace contiene el método correcto en 1.2.5
 
 namespace SayApp.FichajesQR.LectorAndroid;
 
@@ -14,7 +14,7 @@ public static class MauiProgram
         builder
             .UseMauiApp<App>()
             .UseMauiCommunityToolkit()
-            .UseBarcodeScanningMaui()         // ✅ correcta en v1.2.5
+            .UseBarcodeScanning() // ✅ Este es el correcto para 1.2.5
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
