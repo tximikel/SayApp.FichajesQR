@@ -2,55 +2,40 @@
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:scanner="clr-namespace:BarcodeScanning;assembly=BarcodeScanning.Native.Maui"
+	xmlns:scanner="clr-namespace:BarcodeScanning;assembly=BarcodeScanning.Native.Maui"
     x:Class="SayApp.FichajesQR.LectorAndroid.MainPage"
     BackgroundColor="#121212">
 
     <Grid ColumnDefinitions="380,*" Padding="0" Margin="0">
-        <!-- Panel izquierdo: controles e información -->
+        <!-- Panel izquierdo -->
         <VerticalStackLayout Padding="20" Spacing="16" BackgroundColor="#1E1E1E">
             <Label Text="Control de acceso" FontAttributes="Bold" FontSize="20" TextColor="White" />
-            <Button x:Name="BtnStart" Text="Iniciar cámara" Clicked="BtnStart_Clicked" BackgroundColor="#249429" TextColor="White" />
-            <Button x:Name="BtnStop" Text="Detener cámara" Clicked="BtnStop_Clicked" BackgroundColor="#C94929" TextColor="White" />
-            <Button x:Name="BtnToggleCam" Text="Cambiar cámara" Clicked="BtnToggleCam_Clicked" BackgroundColor="#C9A72B" TextColor="White" IsVisible="True" />
-            <Button x:Name="BtnResetCalib"
-                    Text="Reset calibración"
-                    Clicked="BtnResetCalib_Clicked"
-                    BackgroundColor="#444"
-                    TextColor="White" />
+            <Button Text="Iniciar cámara" Clicked="BtnStart_Clicked" BackgroundColor="#249429" TextColor="White" />
+            <Button Text="Detener cámara" Clicked="BtnStop_Clicked" BackgroundColor="#C94929" TextColor="White" />
+            <Button Text="Cambiar cámara" Clicked="BtnToggleCam_Clicked" BackgroundColor="#C9A72B" TextColor="White" />
+            <Button Text="Reset calibración" Clicked="BtnResetCalib_Clicked" BackgroundColor="#444" TextColor="White" />
             <BoxView HeightRequest="1" Color="#333333" Margin="0,10" />
             <Label x:Name="LblEstado" Text="Estado: Inactivo" FontSize="14" TextColor="White" />
             <Label x:Name="LblUltimo" Text="Último QR leído: -" FontSize="13" TextColor="#CCCCCC" />
-            <Label x:Name="LblCalib"
-                   Text="Calibración: Sin aplicar"
-                   FontSize="13"
-                   TextColor="#FFD700"
-                   Margin="0,5,0,0" />
-            <Label Text="Instrucciones" FontAttributes="Bold" FontSize="15" TextColor="White" />
-            <Label Text="1) Sitúe su QR dentro del recuadro a la derecha." FontSize="13" TextColor="#CCCCCC" />
-            <Label Text="2) Acerque o aleje hasta que el borde se ponga verde." FontSize="13" TextColor="#CCCCCC" />
+            <Label x:Name="LblCalib" Text="Calibración: Sin aplicar" FontSize="13" TextColor="#FFD700" Margin="0,5,0,0" />
         </VerticalStackLayout>
 
-        <!-- Panel derecho: cámara y overlay -->
-        <Grid Grid.Column="1" Padding="0" Margin="0">
-            <scanner:CameraView x:Name="Camera"
-                                CameraEnabled="True"
-                                CameraFacing="Front"
-                                TapToFocusEnabled="True"
-                                VibrationOnDetected="True"
-                                CaptureQuality="High"
-                                BarcodeSymbologies="QRCode"
-                                OnDetectionFinished="Camera_OnDetectionFinished"
-                                BackgroundColor="Black"
-                                HorizontalOptions="Fill"
-                                VerticalOptions="Fill" />
-            <GraphicsView x:Name="Overlay"
-                          HorizontalOptions="Fill"
-                          VerticalOptions="Fill">
-                <GraphicsView.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="Overlay_Tapped" />
-                </GraphicsView.GestureRecognizers>
-            </GraphicsView>
-        </Grid>
+		<!-- Panel derecho: cámara y overlay -->
+		<Grid Grid.Column="1" Padding="0" Margin="0">
+			<scanner:CameraView x:Name="Camera"
+								CameraEnabled="True"
+								CameraFacing="Front"
+								TapToFocusEnabled="True"
+								VibrationOnDetected="True"
+								CaptureQuality="High"
+								BarcodeSymbologies="QRCode"
+								OnDetectionFinished="Camera_OnDetectionFinished"
+								BackgroundColor="Black"
+								HorizontalOptions="Fill"
+								VerticalOptions="Fill" />
+			<GraphicsView x:Name="Overlay"
+						  HorizontalOptions="Fill"
+						  VerticalOptions="Fill"/>
+		</Grid>
     </Grid>
 </ContentPage>
