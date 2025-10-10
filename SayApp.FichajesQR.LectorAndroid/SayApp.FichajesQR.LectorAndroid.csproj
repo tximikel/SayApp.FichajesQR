@@ -14,6 +14,8 @@
 		<SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
 
 		<RootNamespace>SayApp.FichajesQR.LectorAndroid</RootNamespace>
+
+		<Configurations>Debug;Release;QuickDebug</Configurations>
 	</PropertyGroup>
 
 	<!-- ============================= -->
@@ -36,6 +38,16 @@
 		<Optimize>false</Optimize>
 		<!-- Usar intérprete .NET (Hot Reload más estable) -->
 		<UseInterpreter>true</UseInterpreter>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)'=='QuickDebug'">
+	  <EmbedAssembliesIntoApk>False</EmbedAssembliesIntoApk>
+	  <AndroidLinkMode>None</AndroidLinkMode>
+	  <RunAOTCompilation>false</RunAOTCompilation>
+	  <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
+	  <DebugSymbols>true</DebugSymbols>
+	  <DebugType>portable</DebugType>
+	  <Optimize>false</Optimize>
+	  <UseInterpreter>true</UseInterpreter>
 	</PropertyGroup>
 
 	<!-- =========================================
